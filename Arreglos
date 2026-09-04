@@ -1,0 +1,1467 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Arreglos en PSeInt · Entrenamiento</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --purple:#7C3AED;
+  --purple-dark:#5B21B6;
+  --blue:#2563EB;
+  --pink:#EC4899;
+  --cyan:#06B6D4;
+  --yellow:#FBBF24;
+  --bg-0:#100A24;
+  --bg-1:#170F35;
+  --card:#1E1444;
+  --card-2:#241a52;
+  --ink:#F4F1FF;
+  --ink-dim:#B9AEDD;
+  --ink-faint:#8579b3;
+  --green:#22C55E;
+  --red:#F43F5E;
+  --radius:22px;
+  --radius-sm:14px;
+  --shadow: 0 20px 45px -20px rgba(0,0,0,.55);
+  --mono:'JetBrains Mono', monospace;
+  --head:'Space Grotesk', sans-serif;
+  --body:'Inter', sans-serif;
+}
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  margin:0;
+  font-family:var(--body);
+  color:var(--ink);
+  background:
+    radial-gradient(1100px 550px at 85% -10%, rgba(124,58,237,.35), transparent 60%),
+    radial-gradient(900px 500px at -10% 10%, rgba(6,182,212,.22), transparent 55%),
+    radial-gradient(700px 500px at 50% 120%, rgba(236,72,153,.18), transparent 60%),
+    var(--bg-0);
+  min-height:100vh;
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3,h4{font-family:var(--head); margin:0; letter-spacing:-.01em;}
+p{line-height:1.6; color:var(--ink-dim); margin:0 0 12px;}
+code, .code{font-family:var(--mono);}
+.hidden{display:none !important;}
+button{font-family:var(--body); cursor:pointer;}
+::selection{background:var(--pink); color:#fff;}
+@media (prefers-reduced-motion: reduce){*{animation-duration:.001ms !important; transition-duration:.001ms !important;}}
+
+/* ---------- App shell ---------- */
+.app{max-width:1100px; margin:0 auto; padding:0 18px 90px;}
+.topbar{
+  position:sticky; top:0; z-index:50;
+  backdrop-filter:blur(14px);
+  background:rgba(16,10,36,.78);
+  border-bottom:1px solid rgba(255,255,255,.08);
+}
+.topbar-inner{max-width:1100px; margin:0 auto; padding:14px 18px; display:flex; align-items:center; justify-content:space-between; gap:14px;}
+.brand{display:flex; align-items:center; gap:10px;}
+.brand-mark{
+  width:38px; height:38px; border-radius:11px; flex:none;
+  background:linear-gradient(135deg,var(--purple),var(--pink));
+  display:flex; align-items:center; justify-content:center; font-size:19px;
+  box-shadow:0 6px 16px -4px rgba(124,58,237,.6);
+}
+.brand-text{font-family:var(--head); font-weight:700; font-size:16px; line-height:1.1;}
+.brand-text span{display:block; font-family:var(--body); font-weight:500; font-size:11.5px; color:var(--ink-faint);}
+.xp-pill{
+  display:flex; align-items:center; gap:8px;
+  background:var(--card); border:1px solid rgba(255,255,255,.08);
+  padding:7px 14px 7px 8px; border-radius:100px; font-size:13px; font-weight:600;
+}
+.xp-pill .lvl-badge{
+  width:26px;height:26px;border-radius:50%;
+  background:linear-gradient(135deg,var(--yellow),var(--pink));
+  display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:#2b1240;
+}
+nav.mainnav{
+  display:flex; gap:6px; overflow-x:auto; padding:10px 18px 12px;
+  max-width:1100px; margin:0 auto; scrollbar-width:none;
+}
+nav.mainnav::-webkit-scrollbar{display:none;}
+nav.mainnav button{
+  flex:none; border:none; background:transparent; color:var(--ink-faint);
+  font-weight:600; font-size:13.5px; padding:8px 14px; border-radius:100px;
+  transition:background .18s, color .18s;
+  display:flex; align-items:center; gap:6px;
+}
+nav.mainnav button.active{background:linear-gradient(135deg,var(--purple),var(--blue)); color:#fff;}
+nav.mainnav button:not(.active):hover{background:rgba(255,255,255,.06); color:var(--ink);}
+
+section.view{padding-top:26px; animation:fadein .35s ease;}
+@keyframes fadein{from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);}}
+
+/* ---------- Reusable ---------- */
+.card{
+  background:linear-gradient(180deg, var(--card), var(--card-2));
+  border:1px solid rgba(255,255,255,.07);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+  padding:22px;
+}
+.btn{
+  border:none; border-radius:100px; padding:13px 22px; font-weight:700; font-size:14.5px;
+  color:#fff; background:linear-gradient(135deg,var(--purple),var(--pink));
+  box-shadow:0 10px 24px -10px rgba(236,72,153,.55);
+  transition:transform .15s ease, box-shadow .15s ease;
+}
+.btn:hover{transform:translateY(-2px); box-shadow:0 14px 28px -10px rgba(236,72,153,.65);}
+.btn:active{transform:translateY(0);}
+.btn.secondary{background:var(--card-2); box-shadow:none; border:1px solid rgba(255,255,255,.12); color:var(--ink);}
+.btn.ghost{background:transparent; border:1px solid rgba(255,255,255,.15); color:var(--ink-dim); box-shadow:none;}
+.btn.small{padding:8px 15px; font-size:13px;}
+.btn:disabled{opacity:.4; cursor:not-allowed; transform:none; box-shadow:none;}
+.pbar-track{height:10px; border-radius:100px; background:rgba(255,255,255,.08); overflow:hidden;}
+.pbar-fill{height:100%; border-radius:100px; background:linear-gradient(90deg,var(--cyan),var(--purple),var(--pink)); transition:width .5s cubic-bezier(.22,1,.36,1);}
+.tag{display:inline-flex; align-items:center; gap:5px; font-size:12px; font-weight:700; padding:4px 10px; border-radius:100px; background:rgba(255,255,255,.08); color:var(--ink-dim);}
+.tag.g{background:rgba(34,197,94,.16); color:#6ee7a0;}
+.tag.y{background:rgba(251,191,36,.16); color:#fcd34d;}
+.tag.r{background:rgba(244,63,94,.16); color:#fca5b5;}
+.grid{display:grid; gap:16px;}
+.grid.cols-3{grid-template-columns:repeat(3,1fr);}
+.grid.cols-2{grid-template-columns:repeat(2,1fr);}
+@media(max-width:760px){.grid.cols-3, .grid.cols-2{grid-template-columns:1fr;}}
+.codeblock{
+  background:#0B0620; border:1px solid rgba(255,255,255,.08); border-radius:var(--radius-sm);
+  padding:16px 18px; font-family:var(--mono); font-size:13.5px; line-height:1.75; color:#c9c0f5;
+  overflow-x:auto; white-space:pre;
+}
+.codeblock .kw{color:#67e8f9;}
+.codeblock .idx{color:var(--pink); font-weight:700;}
+input.blank{
+  font-family:var(--mono); font-size:13.5px; width:56px; text-align:center;
+  background:#0B0620; border:2px solid var(--purple); border-radius:8px; color:#fff; padding:4px 6px; margin:0 3px;
+}
+input.blank.wide{width:130px;}
+input.blank:focus{outline:none; border-color:var(--cyan);}
+.feedback{
+  margin-top:12px; padding:13px 16px; border-radius:var(--radius-sm); font-size:14px; font-weight:600;
+  display:none; align-items:flex-start; gap:10px;
+}
+.feedback.show{display:flex;}
+.feedback.ok{background:rgba(34,197,94,.14); color:#8fefb1; border:1px solid rgba(34,197,94,.35);}
+.feedback.bad{background:rgba(244,63,94,.14); color:#ffb1c0; border:1px solid rgba(244,63,94,.35);}
+.feedback p{color:inherit; margin:0;}
+.hint-box{margin-top:10px; font-size:13px; color:var(--yellow); display:none;}
+.hint-box.show{display:block;}
+.toast{
+  position:fixed; bottom:22px; left:50%; transform:translateX(-50%) translateY(20px);
+  background:linear-gradient(135deg,var(--purple),var(--pink)); color:#fff; font-weight:700; font-size:13.5px;
+  padding:13px 22px; border-radius:100px; box-shadow:0 14px 30px -8px rgba(0,0,0,.5);
+  opacity:0; pointer-events:none; transition:all .35s cubic-bezier(.22,1,.36,1); z-index:200; white-space:nowrap;
+}
+.toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+
+/* ---------- Home ---------- */
+.hero{
+  border-radius:28px; padding:38px 30px; position:relative; overflow:hidden;
+  background:linear-gradient(135deg, #2a1665 0%, #4c1d95 45%, #7c1d6a 100%);
+  box-shadow:var(--shadow);
+}
+.hero::after{
+  content:""; position:absolute; inset:0;
+  background:radial-gradient(400px 250px at 90% 10%, rgba(255,255,255,.14), transparent 60%);
+}
+.hero h1{font-size:clamp(26px,4vw,36px); position:relative; margin-bottom:10px;}
+.hero p.lead{position:relative; color:#e4defc; font-size:15.5px; max-width:60ch;}
+.hero-stats{display:flex; gap:22px; margin:22px 0 26px; flex-wrap:wrap; position:relative;}
+.hero-stat b{display:block; font-family:var(--head); font-size:24px;}
+.hero-stat span{font-size:12px; color:#c9bff5;}
+.motivate{
+  margin-top:22px; background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.15);
+  border-radius:var(--radius-sm); padding:13px 16px; font-size:13.5px; font-style:italic; color:#f1ecff; position:relative;
+}
+.section-title{display:flex; align-items:center; gap:10px; margin:34px 0 16px;}
+.section-title h2{font-size:20px;}
+.section-title .dot{width:9px; height:9px; border-radius:50%; background:linear-gradient(135deg,var(--cyan),var(--purple));}
+
+/* ---------- Aprende ---------- */
+.module{margin-bottom:16px; overflow:hidden;}
+.module-head{display:flex; align-items:center; justify-content:space-between; cursor:pointer; gap:14px;}
+.module-head h3{font-size:16.5px;}
+.module-num{
+  width:34px; height:34px; border-radius:10px; flex:none; display:flex; align-items:center; justify-content:center;
+  background:linear-gradient(135deg,var(--blue),var(--cyan)); font-weight:800; font-size:14px;
+}
+.module-head-left{display:flex; align-items:center; gap:12px;}
+.chev{transition:transform .25s ease; color:var(--ink-faint); font-size:18px;}
+.module.open .chev{transform:rotate(180deg);}
+.module-body{max-height:0; overflow:hidden; transition:max-height .35s ease;}
+.module.open .module-body{max-height:6000px;}
+.module-body-inner{padding-top:18px;}
+.arr-demo{display:flex; gap:8px; margin:16px 0; flex-wrap:wrap;}
+.arr-cell{
+  width:56px; text-align:center; border-radius:10px; overflow:hidden; border:2px solid rgba(255,255,255,.12);
+  background:#0B0620; cursor:pointer; transition:border-color .15s, transform .15s;
+}
+.arr-cell:hover{transform:translateY(-3px);}
+.arr-cell.active{border-color:var(--pink); box-shadow:0 0 0 3px rgba(236,72,153,.25);}
+.arr-cell .idx-lbl{font-size:11px; background:rgba(255,255,255,.06); color:var(--ink-faint); padding:3px 0;}
+.arr-cell .val{font-family:var(--mono); font-weight:700; padding:9px 0; font-size:15px;}
+.arr-readout{margin-top:10px; font-family:var(--mono); font-size:13.5px; color:var(--cyan); min-height:20px;}
+.step-sim{margin-top:14px;}
+.step-line{font-family:var(--mono); font-size:13.5px; padding:5px 0; color:var(--ink-faint); opacity:0; transform:translateX(-6px); transition:all .3s ease;}
+.step-line.show{opacity:1; transform:translateX(0); color:#c9c0f5;}
+.mini-quiz{margin-top:18px; padding-top:18px; border-top:1px dashed rgba(255,255,255,.12);}
+.mini-quiz h4{font-size:14px; margin-bottom:10px; color:var(--ink-dim);}
+.q-block{margin-bottom:16px;}
+.q-text{font-weight:600; font-size:14.5px; margin-bottom:9px; color:var(--ink);}
+.opts{display:flex; flex-direction:column; gap:8px;}
+.opt-btn{
+  text-align:left; background:rgba(255,255,255,.04); border:1.5px solid rgba(255,255,255,.1); color:var(--ink);
+  border-radius:var(--radius-sm); padding:11px 14px; font-size:13.5px; transition:all .15s ease;
+}
+.opt-btn:hover{border-color:var(--purple); background:rgba(124,58,237,.12);}
+.opt-btn.correct{border-color:var(--green); background:rgba(34,197,94,.16);}
+.opt-btn.wrong{border-color:var(--red); background:rgba(244,63,94,.16);}
+.opt-btn:disabled{cursor:default;}
+
+/* ---------- Flashcards ---------- */
+.fc-wrap{display:flex; flex-direction:column; align-items:center; gap:18px;}
+.fc-progress-row{width:100%; max-width:520px; display:flex; align-items:center; gap:10px; font-size:12.5px; color:var(--ink-faint);}
+.flashcard{
+  width:100%; max-width:520px; height:250px; perspective:1200px; cursor:pointer;
+}
+.fc-inner{position:relative; width:100%; height:100%; transition:transform .5s cubic-bezier(.22,1,.36,1); transform-style:preserve-3d;}
+.flashcard.flipped .fc-inner{transform:rotateY(180deg);}
+.fc-face{
+  position:absolute; inset:0; backface-visibility:hidden; border-radius:24px; padding:28px;
+  display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;
+  box-shadow:var(--shadow); border:1px solid rgba(255,255,255,.1);
+}
+.fc-front{background:linear-gradient(150deg,var(--purple),var(--blue));}
+.fc-back{background:linear-gradient(150deg,var(--pink),var(--purple-dark)); transform:rotateY(180deg);}
+.fc-face .fc-label{font-size:11px; letter-spacing:.04em; color:rgba(255,255,255,.65); margin-bottom:12px; font-weight:700;}
+.fc-face p{color:#fff; font-size:17px; font-weight:600; line-height:1.5; margin:0;}
+.fc-controls{display:flex; gap:12px; width:100%; max-width:520px;}
+.fc-controls button{flex:1;}
+.btn.review{background:linear-gradient(135deg,#F59E0B,#EF4444);}
+.btn.know{background:linear-gradient(135deg,#10B981,#06B6D4);}
+
+/* ---------- Practica / niveles ---------- */
+.level-group{margin-bottom:26px;}
+.level-head{display:flex; align-items:center; gap:10px; margin-bottom:14px;}
+.exercise-card{margin-bottom:16px; position:relative;}
+.exercise-card.locked{opacity:.5;}
+.exercise-card.locked::after{
+  content:"🔒 Completa el nivel anterior para desbloquear"; position:absolute; inset:0; border-radius:var(--radius);
+  display:flex; align-items:center; justify-content:center; background:rgba(16,10,36,.72); font-weight:700; font-size:13.5px;
+  text-align:center; padding:20px;
+}
+.ex-head{display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:10px;}
+.ex-head h3{font-size:16.5px;}
+.ex-body{font-size:14px;}
+.blank-row{margin:12px 0;}
+.hint-btn{font-size:12px; color:var(--yellow); background:none; border:none; text-decoration:underline; padding:0; margin-top:8px;}
+.order-list{list-style:none; padding:0; margin:14px 0; display:flex; flex-direction:column; gap:8px;}
+.order-item{
+  background:#0B0620; border:1.5px solid rgba(255,255,255,.1); border-radius:10px; padding:10px 14px;
+  font-family:var(--mono); font-size:13px; cursor:grab; display:flex; align-items:center; gap:10px;
+}
+.order-item .grip{color:var(--ink-faint);}
+.order-item.dragging{opacity:.4;}
+.classify-row{display:flex; flex-wrap:wrap; gap:10px; margin:14px 0;}
+.classify-chip{
+  background:#0B0620; border:1.5px solid rgba(255,255,255,.12); border-radius:12px; padding:10px 16px;
+  font-family:var(--mono); font-weight:700;
+}
+.classify-btns{display:flex; gap:8px; margin-top:6px;}
+.classify-btns button{font-size:11.5px; padding:5px 10px;}
+
+/* ---------- Progreso ---------- */
+.stat-card{text-align:center;}
+.stat-card b{display:block; font-family:var(--head); font-size:28px; margin-bottom:2px;}
+.stat-card span{font-size:12.5px; color:var(--ink-faint);}
+.badge-row{display:flex; flex-wrap:wrap; gap:10px; margin-top:14px;}
+.badge{
+  padding:9px 15px; border-radius:100px; font-size:12.5px; font-weight:700; display:flex; align-items:center; gap:6px;
+  background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.1); color:var(--ink-faint);
+}
+.badge.earned{background:linear-gradient(135deg,rgba(251,191,36,.2),rgba(236,72,153,.2)); border-color:rgba(251,191,36,.4); color:var(--yellow);}
+
+/* ---------- Desafío final ---------- */
+#examStart .card{text-align:center;}
+.exam-q{margin-bottom:22px;}
+.exam-progress{font-size:12.5px; color:var(--ink-faint); margin-bottom:6px;}
+.result-ring{width:150px; height:150px; margin:0 auto 18px; position:relative;}
+.result-ring svg{transform:rotate(-90deg);}
+.result-ring .pct{position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-family:var(--head); font-size:28px; font-weight:700;}
+
+footer.credit{text-align:center; margin-top:60px; font-size:12px; color:var(--ink-faint);}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <div class="brand-mark">🧩</div>
+      <div class="brand-text">Arreglos PSeInt<span>Entrenamiento interactivo</span></div>
+    </div>
+    <div class="xp-pill"><span class="lvl-badge" id="topLevel">1</span><span id="topXp">0 XP</span></div>
+  </div>
+  <nav class="mainnav" id="mainNav">
+    <button data-view="home" class="active">🏠 Inicio</button>
+    <button data-view="learn">📘 Aprende</button>
+    <button data-view="flash">🃏 Flashcards</button>
+    <button data-view="practice">💻 Práctica</button>
+    <button data-view="exam">🏆 Desafíos</button>
+    <button data-view="progress">📊 Progreso</button>
+  </nav>
+</div>
+
+<div class="app">
+
+  <!-- ================= HOME ================= -->
+  <section class="view" id="view-home">
+    <div class="hero">
+      <h1>¡Bienvenido/a a tu entrenamiento de Arreglos en PSeInt! 👋</h1>
+      <p class="lead">Aprenderás qué son los arreglos, cómo declararlos, recorrerlos y realizar operaciones como suma, promedio, búsqueda y conteo — practicando de verdad, no solo leyendo.</p>
+      <div class="hero-stats">
+        <div class="hero-stat"><b id="homeLevel">1</b><span>Nivel actual</span></div>
+        <div class="hero-stat"><b id="homeXp">0 / 500</b><span>Experiencia (XP)</span></div>
+        <div class="hero-stat"><b id="homeDone">0</b><span>Ejercicios completados</span></div>
+        <div class="hero-stat"><b id="homePct">0%</b><span>Avance general</span></div>
+      </div>
+      <div class="pbar-track" style="max-width:420px;"><div class="pbar-fill" id="homeBar" style="width:0%"></div></div>
+      <div style="margin-top:24px; position:relative;"><button class="btn" id="startBtn">Comenzar a estudiar →</button></div>
+      <div class="motivate" id="homeMotivate">"Un algoritmo a la vez."</div>
+    </div>
+
+    <div class="section-title"><span class="dot"></span><h2>¿Por dónde empezar?</h2></div>
+    <div class="grid cols-3">
+      <div class="card"><h3 style="margin-bottom:8px;">📘 Aprende</h3><p>8 módulos con teoría, animaciones y mini quizzes.</p><button class="btn secondary small" data-goto="learn">Ir a Aprende</button></div>
+      <div class="card"><h3 style="margin-bottom:8px;">🃏 Flashcards</h3><p>25 tarjetas para repasar los conceptos clave.</p><button class="btn secondary small" data-goto="flash">Ir a Flashcards</button></div>
+      <div class="card"><h3 style="margin-bottom:8px;">💻 Práctica</h3><p>8 ejercicios progresivos por niveles.</p><button class="btn secondary small" data-goto="practice">Ir a Práctica</button></div>
+    </div>
+  </section>
+
+  <!-- ================= APRENDE ================= -->
+  <section class="view hidden" id="view-learn">
+    <div class="section-title"><span class="dot"></span><h2>Aprende — Teoría en 8 módulos</h2></div>
+    <div id="modulesWrap"></div>
+  </section>
+
+  <!-- ================= FLASHCARDS ================= -->
+  <section class="view hidden" id="view-flash">
+    <div class="section-title"><span class="dot"></span><h2>Flashcards</h2></div>
+    <div class="fc-wrap">
+      <div class="fc-progress-row">
+        <span id="fcCounter">Tarjeta 1 / 25</span>
+        <div class="pbar-track" style="flex:1;"><div class="pbar-fill" id="fcBar" style="width:4%"></div></div>
+        <span id="fcReviewCount">0 por repasar</span>
+      </div>
+      <div class="flashcard" id="flashcard">
+        <div class="fc-inner">
+          <div class="fc-face fc-front"><div class="fc-label">PREGUNTA</div><p id="fcQ"></p></div>
+          <div class="fc-face fc-back"><div class="fc-label">RESPUESTA</div><p id="fcA"></p></div>
+        </div>
+      </div>
+      <p style="text-align:center; font-size:12.5px; color:var(--ink-faint);">Toca la tarjeta para girarla</p>
+      <div class="fc-controls">
+        <button class="btn review" id="fcReview">🔁 Necesito repasar</button>
+        <button class="btn know" id="fcKnow">✅ Sé esto</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= PRACTICA ================= -->
+  <section class="view hidden" id="view-practice">
+    <div class="section-title"><span class="dot"></span><h2>Práctica — Ejercicios por nivel</h2></div>
+    <div id="practiceWrap"></div>
+  </section>
+
+  <!-- ================= EXAM ================= -->
+  <section class="view hidden" id="view-exam">
+    <div class="section-title"><span class="dot"></span><h2>Desafío Final</h2></div>
+    <div id="examStart">
+      <div class="card">
+        <h3 style="font-size:19px; margin-bottom:10px;">🏆 Pon a prueba todo lo aprendido</h3>
+        <p>10 preguntas aleatorias que mezclan teoría, lectura de código, completar código, encontrar errores y predecir resultados.</p>
+        <button class="btn" id="examStartBtn">Comenzar desafío</button>
+      </div>
+    </div>
+    <div id="examRunning" class="hidden">
+      <div class="card">
+        <div class="exam-progress" id="examProgress"></div>
+        <div class="pbar-track" style="margin-bottom:18px;"><div class="pbar-fill" id="examBar" style="width:0%"></div></div>
+        <div id="examQArea"></div>
+      </div>
+    </div>
+    <div id="examResult" class="hidden">
+      <div class="card" style="text-align:center;">
+        <div class="result-ring">
+          <svg width="150" height="150"><circle cx="75" cy="75" r="66" stroke="rgba(255,255,255,.1)" stroke-width="12" fill="none"/><circle id="resultCircle" cx="75" cy="75" r="66" stroke="url(#gradResult)" stroke-width="12" fill="none" stroke-linecap="round" stroke-dasharray="415" stroke-dashoffset="415"/><defs><linearGradient id="gradResult" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#06B6D4"/><stop offset="100%" stop-color="#EC4899"/></linearGradient></defs></svg>
+          <div class="pct" id="examPct">0%</div>
+        </div>
+        <h3 id="examScoreText" style="font-size:19px; margin-bottom:6px;"></h3>
+        <p id="examLevelText" style="font-weight:700; color:var(--yellow);"></p>
+        <p id="examRecText" style="max-width:48ch; margin:0 auto;"></p>
+        <button class="btn secondary" style="margin-top:14px;" id="examRetryBtn">Intentar de nuevo</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= PROGRESO ================= -->
+  <section class="view hidden" id="view-progress">
+    <div class="section-title"><span class="dot"></span><h2>Tu progreso</h2></div>
+    <div class="grid cols-3">
+      <div class="card stat-card"><b id="pLevel">1</b><span>Nivel actual</span></div>
+      <div class="card stat-card"><b id="pXp">0</b><span>XP total</span></div>
+      <div class="card stat-card"><b id="pDone">0/8</b><span>Ejercicios completados</span></div>
+    </div>
+    <div class="card" style="margin-top:16px;">
+      <h3 style="margin-bottom:10px;">Avance general</h3>
+      <div class="pbar-track"><div class="pbar-fill" id="pBar" style="width:0%"></div></div>
+      <p style="margin-top:8px; font-size:12.5px;" id="pBarLabel">0% completado</p>
+    </div>
+    <div class="card" style="margin-top:16px;">
+      <h3 style="margin-bottom:6px;">Insignias</h3>
+      <div class="badge-row" id="badgeRow"></div>
+    </div>
+  </section>
+
+  <footer class="credit">Hecho para dominar los arreglos en PSeInt · Tu progreso se guarda solo durante esta sesión.</footer>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* =========================================================
+   ESTADO GLOBAL (en memoria, no persiste entre recargas)
+========================================================= */
+const state = {
+  xp: 0,
+  level: 1,
+  completedExercises: new Set(),
+  moduleQuizPassed: new Set(),
+  fcIndex: 0,
+  fcKnown: new Set(),
+  fcReviewQueue: [],
+  examBadge: null,
+};
+const XP_PER_LEVEL = 500;
+const TOTAL_EXERCISES = 8;
+
+const MOTIVATIONS = [
+  "¡Cada línea de código que entiendes te acerca a dominar la programación!",
+  "Equivocarse también es programar: analiza, corrige y vuelve a intentarlo.",
+  "¡Vas avanzando! No necesitas entender todo a la primera.",
+  "Un algoritmo a la vez.",
+  "¡Muy bien! Estás entendiendo la lógica.",
+  "¡No te rindas! Los arreglos se entienden practicando.",
+  "Cada intento fortalece tu lógica de programación.",
+  "Programar no es memorizar, es aprender a pensar paso a paso."
+];
+
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(()=>t.classList.remove('show'), 2200);
+}
+
+function addXp(amount){
+  state.xp += amount;
+  const newLevel = Math.floor(state.xp / XP_PER_LEVEL) + 1;
+  if(newLevel > state.level){
+    state.level = newLevel;
+    toast(`🎉 ¡Nivel ${state.level} desbloqueado! Sigue así.`);
+  } else {
+    toast(`+${amount} XP`);
+  }
+  renderHeader();
+}
+
+function renderHeader(){
+  document.getElementById('topLevel').textContent = state.level;
+  document.getElementById('topXp').textContent = `${state.xp} XP`;
+  document.getElementById('homeLevel').textContent = state.level;
+  const xpInLevel = state.xp % XP_PER_LEVEL;
+  document.getElementById('homeXp').textContent = `${xpInLevel} / ${XP_PER_LEVEL}`;
+  document.getElementById('homeDone').textContent = state.completedExercises.size;
+  const pct = Math.round((state.completedExercises.size / TOTAL_EXERCISES) * 100);
+  document.getElementById('homePct').textContent = pct + '%';
+  document.getElementById('homeBar').style.width = pct + '%';
+
+  document.getElementById('pLevel').textContent = state.level;
+  document.getElementById('pXp').textContent = state.xp;
+  document.getElementById('pDone').textContent = `${state.completedExercises.size}/${TOTAL_EXERCISES}`;
+  document.getElementById('pBar').style.width = pct + '%';
+  document.getElementById('pBarLabel').textContent = pct + '% completado';
+  renderBadges();
+  renderPracticeLocks();
+}
+
+function renderBadges(){
+  const badges = [
+    {id:'b1', label:'🔰 Primeros pasos', earned: state.completedExercises.size >= 1},
+    {id:'b2', label:'🟢 Nivel básico dominado', earned: state.completedExercises.has('ex1') && state.completedExercises.has('ex2')},
+    {id:'b3', label:'🟡 Nivel intermedio dominado', earned: ['ex3','ex4','ex5'].every(x=>state.completedExercises.has(x))},
+    {id:'b4', label:'🔴 Nivel avanzado dominado', earned: ['ex6','ex7','ex8'].every(x=>state.completedExercises.has(x))},
+    {id:'b5', label:'🃏 Flashcards revisadas', earned: state.fcKnown.size >= 25},
+    {id:'b6', label:'🏆 Desafío final superado', earned: state.examBadge !== null},
+  ];
+  document.getElementById('badgeRow').innerHTML = badges.map(b=>
+    `<span class="badge ${b.earned?'earned':''}">${b.label}</span>`).join('');
+}
+
+/* =========================================================
+   NAVEGACIÓN
+========================================================= */
+const views = ['home','learn','flash','practice','exam','progress'];
+function goto(view){
+  views.forEach(v=>{
+    document.getElementById('view-'+v).classList.toggle('hidden', v!==view);
+  });
+  document.querySelectorAll('#mainNav button').forEach(b=>{
+    b.classList.toggle('active', b.dataset.view===view);
+  });
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+document.getElementById('mainNav').addEventListener('click', e=>{
+  const btn = e.target.closest('button[data-view]');
+  if(btn) goto(btn.dataset.view);
+});
+document.querySelectorAll('[data-goto]').forEach(el=>{
+  el.addEventListener('click', ()=>goto(el.dataset.goto));
+});
+document.getElementById('startBtn').addEventListener('click', ()=>goto('learn'));
+
+function rotateMotivation(){
+  document.getElementById('homeMotivate').textContent = '"' + MOTIVATIONS[Math.floor(Math.random()*MOTIVATIONS.length)] + '"';
+}
+setInterval(rotateMotivation, 7000);
+
+/* =========================================================
+   DATOS: ARREGLO DE EJEMPLO PARA MÓDULO 1
+========================================================= */
+const demoArr = [10,25,7,42,18];
+
+/* =========================================================
+   MÓDULOS DE TEORÍA
+========================================================= */
+const modules = [
+  {
+    id:'m1', title:'¿Qué es un arreglo?',
+    body:`
+      <p>Un <b>arreglo</b> o <b>vector</b> es una estructura de datos que permite almacenar un conjunto de valores del mismo tipo bajo un mismo nombre. Cada elemento se identifica mediante un <b>índice</b>.</p>
+      <ul style="color:var(--ink-dim); font-size:14px; line-height:1.8; padding-left:18px; margin:0 0 14px;">
+        <li>Todos los elementos son del mismo tipo.</li>
+        <li>Cada elemento tiene una posición o índice.</li>
+        <li>El tamaño se define al declarar el arreglo.</li>
+        <li>En PSeInt los índices comienzan en <b>1</b>.</li>
+      </ul>
+      <p>Ejemplo: <code>numeros[5]</code> — un arreglo con 5 posiciones.</p>
+      <div class="arr-demo" id="arrDemo1"></div>
+      <p class="arr-readout" id="arrReadout1">Haz clic en una posición del arreglo para ver su valor.</p>
+    `,
+    afterRender:()=>{
+      const wrap = document.getElementById('arrDemo1');
+      wrap.innerHTML = demoArr.map((v,i)=>`
+        <div class="arr-cell" data-i="${i+1}">
+          <div class="idx-lbl">[${i+1}]</div>
+          <div class="val">${v}</div>
+        </div>`).join('');
+      wrap.querySelectorAll('.arr-cell').forEach(cell=>{
+        cell.addEventListener('click', ()=>{
+          wrap.querySelectorAll('.arr-cell').forEach(c=>c.classList.remove('active'));
+          cell.classList.add('active');
+          const i = cell.dataset.i;
+          document.getElementById('arrReadout1').textContent = `numeros[${i}] = ${demoArr[i-1]}`;
+        });
+      });
+    },
+    quiz:[
+      {q:'¿Qué es un arreglo?', opts:['Una variable que solo guarda un valor','Una estructura que almacena varios valores del mismo tipo bajo un mismo nombre','Un tipo de bucle','Una función de PSeInt'], correct:1},
+      {q:'¿Desde qué número comienzan los índices en PSeInt?', opts:['0','1','-1','Depende del tamaño'], correct:1},
+      {q:'En numeros[5] = {10,25,7,42,18}, ¿cuánto vale numeros[3]?', opts:['25','7','42','10'], correct:1},
+    ]
+  },
+  {
+    id:'m2', title:'Declaración de arreglos',
+    body:`
+      <p>En PSeInt se declara el tamaño con <code>Dimension</code> y el tipo con <code>Definir</code>:</p>
+      <div class="codeblock"><span class="kw">Dimension</span> numeros[5]
+<span class="kw">Definir</span> numeros <span class="kw">Como</span> Entero</div>
+      <p style="margin-top:12px;">Luego se asignan valores usando corchetes:</p>
+      <div class="codeblock">numeros[1] <- 10
+numeros[2] <- 25
+numeros[3] <- 7</div>
+      <p style="margin-top:14px; font-weight:600; color:var(--ink);">Completa el código:</p>
+      <div class="blank-row">
+        <span class="code">Dimension numeros[</span><input type="text" class="blank" id="m2b1" placeholder="?"><span class="code">]</span>
+        <span style="color:var(--ink-faint); font-size:12.5px;"> — el arreglo debe tener 5 posiciones</span>
+      </div>
+      <div class="blank-row">
+        <span class="code">numeros[3] <- </span><input type="text" class="blank" id="m2b2" placeholder="?">
+        <span style="color:var(--ink-faint); font-size:12.5px;"> — usando el ejemplo de arriba</span>
+      </div>
+      <button class="btn small secondary" id="m2check">Comprobar</button>
+      <div class="feedback" id="m2fb"></div>
+    `,
+    afterRender:()=>{
+      document.getElementById('m2check').addEventListener('click', ()=>{
+        const a1 = document.getElementById('m2b1').value.trim();
+        const a2 = document.getElementById('m2b2').value.trim();
+        const fb = document.getElementById('m2fb');
+        if(a1==='5' && a2==='7'){
+          fb.className='feedback show ok';
+          fb.innerHTML='<p>¡Correcto! 🎉 Dimension define el tamaño (5) y numeros[3] guarda el valor 7.</p>';
+          addXp(5);
+        } else {
+          fb.className='feedback show bad';
+          fb.innerHTML='<p>¡Casi! No te preocupes, equivocarse es parte de aprender 💪. Revisa: Dimension necesita el tamaño total del arreglo (5), y numeros[3] es la tercera posición del ejemplo (7).</p>';
+        }
+      });
+    },
+    quiz:[
+      {q:'¿Qué instrucción define el tamaño de un arreglo en PSeInt?', opts:['Definir','Dimension','Tamaño','Crear'], correct:1},
+      {q:'¿Qué símbolo se usa para indicar la posición de un elemento?', opts:['Paréntesis ( )','Llaves { }','Corchetes [ ]','Dos puntos :'], correct:2},
+      {q:'¿Cuál es la forma correcta de asignar el valor 10 a la primera posición?', opts:['numeros(1) = 10','numeros[1] <- 10','1[numeros] <- 10','numeros[0] <- 10'], correct:1},
+    ]
+  },
+  {
+    id:'m3', title:'Recorrido con Para',
+    body:`
+      <p>Usamos <code>Para</code> para recorrer un arreglo cuando conocemos su tamaño:</p>
+      <div class="codeblock"><span class="kw">Para</span> i <- 1 <span class="kw">Hasta</span> N <span class="kw">Hacer</span>
+    <span class="kw">Leer</span> numeros[i]
+<span class="kw">FinPara</span></div>
+      <p style="margin-top:12px;">Observa cómo la variable <code>i</code> recorre cada posición:</p>
+      <button class="btn small secondary" id="m3play">▶ Reproducir recorrido</button>
+      <div class="step-sim" id="m3sim"></div>
+      <p style="margin-top:10px; font-size:13px;">También se puede usar un ciclo para leer los valores y otro ciclo distinto para mostrarlos.</p>
+    `,
+    afterRender:()=>{
+      document.getElementById('m3play').addEventListener('click', ()=>{
+        const sim = document.getElementById('m3sim');
+        sim.innerHTML = demoArr.map((v,i)=>`<div class="step-line" id="m3s${i}">i = ${i+1}  →  numeros[${i+1}] = ${v}</div>`).join('');
+        demoArr.forEach((v,i)=>{
+          setTimeout(()=>document.getElementById('m3s'+i).classList.add('show'), i*450);
+        });
+      });
+    },
+    quiz:[
+      {q:'¿Qué instrucción se usa para recorrer un arreglo de tamaño conocido?', opts:['Mientras','Para','Repetir','Si'], correct:1},
+      {q:'En "Para i <- 1 Hasta N Hacer", ¿qué representa N?', opts:['El valor del primer elemento','El tamaño del arreglo','El índice actual','Un valor fijo igual a 5'], correct:1},
+      {q:'¿Es posible usar un ciclo para leer y otro distinto para mostrar los datos?', opts:['Sí','No','Solo si N es par','Solo en arreglos de texto'], correct:0},
+    ]
+  },
+  {
+    id:'m4', title:'Suma y promedio',
+    body:`
+      <p>Para sumar los elementos usamos un <b>acumulador</b>: una variable que empieza en 0 y va acumulando valores.</p>
+      <div class="codeblock">suma <- 0
+
+<span class="kw">Para</span> i <- 1 <span class="kw">Hasta</span> N <span class="kw">Hacer</span>
+    suma <- suma + numeros[i]
+<span class="kw">FinPara</span>
+
+promedio <- suma / N</div>
+      <p style="margin-top:14px; font-weight:600; color:var(--ink);">Prueba tú mismo: ingresa 3 números y observa la suma paso a paso.</p>
+      <div class="blank-row">
+        <input type="text" class="blank" id="m4n1" placeholder="5">
+        <input type="text" class="blank" id="m4n2" placeholder="10">
+        <input type="text" class="blank" id="m4n3" placeholder="3">
+        <button class="btn small secondary" id="m4run">Calcular</button>
+      </div>
+      <div class="step-sim" id="m4sim"></div>
+    `,
+    afterRender:()=>{
+      document.getElementById('m4run').addEventListener('click', ()=>{
+        const vals = [document.getElementById('m4n1').value, document.getElementById('m4n2').value, document.getElementById('m4n3').value]
+          .map(v=>parseFloat(v)).filter(v=>!isNaN(v));
+        if(vals.length===0){ toast('Ingresa al menos un número'); return; }
+        const sim = document.getElementById('m4sim');
+        let lines = [`suma = 0`];
+        let acc = 0;
+        vals.forEach(v=>{
+          const prev = acc;
+          acc += v;
+          lines.push(`suma = ${prev} + ${v} = ${acc}`);
+        });
+        lines.push(`promedio = ${acc} / ${vals.length} = ${(acc/vals.length).toFixed(2)}`);
+        sim.innerHTML = lines.map((l,i)=>`<div class="step-line" id="m4l${i}">${l}</div>`).join('');
+        lines.forEach((l,i)=>setTimeout(()=>document.getElementById('m4l'+i).classList.add('show'), i*450));
+      });
+    },
+    quiz:[
+      {q:'¿Cómo debe iniciarse siempre un acumulador de suma?', opts:['En 1','En 0','En N','En el valor más alto'], correct:1},
+      {q:'¿Cuál es la fórmula correcta del promedio?', opts:['suma * N','suma / N','N / suma','suma + N'], correct:1},
+      {q:'¿Qué instrucción acumula el valor de numeros[i] en suma?', opts:['suma <- numeros[i]','suma <- suma + numeros[i]','suma <- suma - numeros[i]','suma <- i'], correct:1},
+    ]
+  },
+  {
+    id:'m5', title:'Mayor elemento',
+    body:`
+      <p>Para encontrar el mayor elemento: (1) inicializamos <code>mayor</code> con el primer elemento, (2) recorremos desde la posición 2, (3) comparamos, (4) si hay uno mayor, actualizamos.</p>
+      <div class="codeblock">mayor <- numeros[1]
+
+<span class="kw">Para</span> i <- 2 <span class="kw">Hasta</span> N <span class="kw">Hacer</span>
+    <span class="kw">Si</span> numeros[i] > mayor <span class="kw">Entonces</span>
+        mayor <- numeros[i]
+    <span class="kw">FinSi</span>
+<span class="kw">FinPara</span></div>
+      <p style="margin-top:12px;"><b>¿Por qué NO inicializar mayor en 0?</b> Porque si todos los números son negativos, el algoritmo fallaría.</p>
+      <p>Ejemplo: <code>-10, -5, -20</code> → si mayor comenzara en 0, el resultado sería 0 (incorrecto). El verdadero mayor es -5.</p>
+      <button class="btn small secondary" id="m5play">▶ Ver simulación con -10, -5, -20</button>
+      <div class="step-sim" id="m5sim"></div>
+    `,
+    afterRender:()=>{
+      document.getElementById('m5play').addEventListener('click', ()=>{
+        const arr = [-10,-5,-20];
+        const sim = document.getElementById('m5sim');
+        let mayor = arr[0];
+        let lines = [`mayor <- numeros[1] = ${mayor}`];
+        for(let i=1;i<arr.length;i++){
+          if(arr[i] > mayor){
+            lines.push(`i=${i+1}: numeros[${i+1}]=${arr[i]} > mayor(${mayor}) → mayor <- ${arr[i]}`);
+            mayor = arr[i];
+          } else {
+            lines.push(`i=${i+1}: numeros[${i+1}]=${arr[i]} no supera a mayor(${mayor}) → sin cambios`);
+          }
+        }
+        lines.push(`Resultado final: mayor = ${mayor}`);
+        sim.innerHTML = lines.map((l,i)=>`<div class="step-line" id="m5l${i}">${l}</div>`).join('');
+        lines.forEach((l,i)=>setTimeout(()=>document.getElementById('m5l'+i).classList.add('show'), i*500));
+      });
+    },
+    quiz:[
+      {q:'¿Con qué valor se debe inicializar la variable mayor?', opts:['Con 0 siempre','Con el primer elemento del arreglo','Con el último elemento','Con 100'], correct:1},
+      {q:'¿Por qué inicializar mayor en 0 puede ser un error?', opts:['Porque 0 es un número par','Porque si todos los elementos son negativos, el resultado sería incorrecto','Porque PSeInt no permite el valor 0','No es un error, siempre funciona'], correct:1},
+      {q:'¿Desde qué posición conviene empezar a comparar si mayor ya tiene el valor de numeros[1]?', opts:['Desde la posición 1','Desde la posición 2','Desde la última posición','Da igual'], correct:1},
+    ]
+  },
+  {
+    id:'m6', title:'Conteo con condición (pares e impares)',
+    body:`
+      <p>Un <b>contador</b> es una variable que va sumando 1 cada vez que se cumple una condición.</p>
+      <div class="codeblock">contador <- 0
+
+<span class="kw">Para</span> i <- 1 <span class="kw">Hasta</span> N <span class="kw">Hacer</span>
+    <span class="kw">Si</span> numeros[i] MOD 2 = 0 <span class="kw">Entonces</span>
+        contador <- contador + 1
+    <span class="kw">FinSi</span>
+<span class="kw">FinPara</span></div>
+      <p style="margin-top:10px;"><code>MOD</code> devuelve el resto de una división. Ejemplo: <code>4 MOD 2 = 0</code> → par. <code>5 MOD 2 = 1</code> → impar.</p>
+      <p style="margin-top:14px; font-weight:600; color:var(--ink);">Clasifica estos números como par o impar:</p>
+      <div class="classify-row" id="m6row"></div>
+      <div class="feedback" id="m6fb"></div>
+    `,
+    afterRender:()=>{
+      const nums = [8,13,21,44,7];
+      let results = {};
+      const row = document.getElementById('m6row');
+      row.innerHTML = nums.map((n,i)=>`
+        <div class="classify-chip">${n}
+          <div class="classify-btns">
+            <button class="btn ghost" data-i="${i}" data-ans="par">Par</button>
+            <button class="btn ghost" data-i="${i}" data-ans="impar">Impar</button>
+          </div>
+        </div>`).join('');
+      row.querySelectorAll('button').forEach(btn=>{
+        btn.addEventListener('click', ()=>{
+          const i = +btn.dataset.i;
+          const correct = nums[i] % 2 === 0 ? 'par' : 'impar';
+          results[i] = (btn.dataset.ans === correct);
+          btn.parentElement.querySelectorAll('button').forEach(b=>b.style.opacity='.5');
+          btn.style.opacity='1';
+          btn.style.borderColor = results[i] ? 'var(--green)' : 'var(--red)';
+          if(Object.keys(results).length === nums.length){
+            const correctCount = Object.values(results).filter(Boolean).length;
+            const fb = document.getElementById('m6fb');
+            if(correctCount === nums.length){
+              fb.className='feedback show ok';
+              fb.innerHTML=`<p>¡Correcto! 🎉 Clasificaste los ${nums.length} números correctamente usando MOD 2.</p>`;
+              addXp(5);
+            } else {
+              fb.className='feedback show bad';
+              fb.innerHTML=`<p>Acertaste ${correctCount} de ${nums.length}. Recuerda: si numeros[i] MOD 2 = 0, el número es par.</p>`;
+            }
+          }
+        });
+      });
+    },
+    quiz:[
+      {q:'¿Qué devuelve el operador MOD?', opts:['El cociente de una división','El resto de una división','El doble de un número','La raíz cuadrada'], correct:1},
+      {q:'¿Cuánto es 7 MOD 2?', opts:['0','1','2','3.5'], correct:1},
+      {q:'¿Qué variable se usa típicamente para contar cuántas veces se cumple una condición?', opts:['Un acumulador de suma','Un contador','Una bandera','Un índice'], correct:1},
+    ]
+  },
+  {
+    id:'m7', title:'Búsqueda lineal',
+    body:`
+      <p>La <b>búsqueda lineal</b> recorre el arreglo comparando cada elemento con el valor buscado, usando una <b>variable bandera</b>:</p>
+      <div class="codeblock">encontrado <- Falso
+
+<span class="kw">Para</span> i <- 1 <span class="kw">Hasta</span> N <span class="kw">Hacer</span>
+    <span class="kw">Si</span> numeros[i] = buscado <span class="kw">Entonces</span>
+        encontrado <- Verdadero
+        posEncontrado <- i
+    <span class="kw">FinSi</span>
+<span class="kw">FinPara</span></div>
+      <p style="margin-top:10px;">Una <b>bandera</b> es una variable lógica (Verdadero/Falso) que indica si ocurrió algo durante el recorrido.</p>
+      <p style="margin-top:14px; font-weight:600; color:var(--ink);">Busca un número en el arreglo:</p>
+      <div class="arr-demo" id="m7arr"></div>
+      <div class="blank-row">
+        <input type="text" class="blank wide" id="m7search" placeholder="buscado">
+        <button class="btn small secondary" id="m7go">🔎 Buscar</button>
+      </div>
+      <div class="step-sim" id="m7sim"></div>
+    `,
+    afterRender:()=>{
+      const arr = [12,4,9,31,6];
+      document.getElementById('m7arr').innerHTML = arr.map((v,i)=>`
+        <div class="arr-cell" id="m7c${i}"><div class="idx-lbl">[${i+1}]</div><div class="val">${v}</div></div>`).join('');
+      document.getElementById('m7go').addEventListener('click', ()=>{
+        const target = parseInt(document.getElementById('m7search').value);
+        arr.forEach((_,i)=>document.getElementById('m7c'+i).classList.remove('active'));
+        if(isNaN(target)){ toast('Escribe un número para buscar'); return; }
+        const sim = document.getElementById('m7sim');
+        sim.innerHTML='';
+        let found = false, foundPos = -1;
+        arr.forEach((v,i)=>{
+          setTimeout(()=>{
+            document.getElementById('m7c'+i).classList.add('active');
+            const line = document.createElement('div');
+            line.className='step-line';
+            line.textContent = v===target ? `i=${i+1}: numeros[${i+1}]=${v} = ${target} → encontrado <- Verdadero` : `i=${i+1}: numeros[${i+1}]=${v} ≠ ${target}`;
+            sim.appendChild(line);
+            setTimeout(()=>line.classList.add('show'), 30);
+            if(v===target && !found){ found=true; foundPos=i+1; }
+            if(i===arr.length-1){
+              setTimeout(()=>{
+                const res = document.createElement('div');
+                res.className='step-line';
+                res.style.color = found ? '#8fefb1' : '#ffb1c0';
+                res.textContent = found ? `✅ Encontrado en la posición ${foundPos}` : `❌ No se encontró ${target} en el arreglo`;
+                sim.appendChild(res);
+                setTimeout(()=>res.classList.add('show'),30);
+              }, 200);
+            }
+          }, i*500);
+        });
+      });
+    },
+    quiz:[
+      {q:'¿Qué es una variable bandera?', opts:['Un tipo de arreglo','Una variable lógica que indica si ocurrió algo','Un índice negativo','Una función de PSeInt'], correct:1},
+      {q:'¿Con qué valor se inicializa normalmente la variable encontrado?', opts:['Verdadero','Falso','0','1'], correct:1},
+      {q:'¿Qué guarda la variable posEncontrado?', opts:['El valor buscado','La posición donde se encontró el elemento','El tamaño del arreglo','La cantidad de elementos'], correct:1},
+    ]
+  },
+  {
+    id:'m8', title:'Orden inverso',
+    body:`
+      <p>Para recorrer un arreglo de atrás hacia adelante, usamos <code>Con Paso -1</code>:</p>
+      <div class="codeblock"><span class="kw">Para</span> i <- N <span class="kw">Hasta</span> 1 <span class="kw">Con Paso</span> -1 <span class="kw">Hacer</span>
+    <span class="kw">Escribir</span> numeros[i]
+<span class="kw">FinPara</span></div>
+      <p style="margin-top:10px;">Ejemplo — entrada: <code>10 25 7</code> → salida: <code>7 25 10</code></p>
+      <p style="margin-top:14px; font-weight:600; color:var(--ink);">Ordena las líneas del ciclo (arrastra para reordenar):</p>
+      <ul class="order-list" id="m8order"></ul>
+      <button class="btn small secondary" id="m8check">Comprobar orden</button>
+      <div class="feedback" id="m8fb"></div>
+    `,
+    afterRender:()=>{
+      const correctOrder = [
+        'Para i <- N Hasta 1 Con Paso -1 Hacer',
+        '    Escribir numeros[i]',
+        'FinPara'
+      ];
+      let shuffled = [...correctOrder].sort(()=>Math.random()-0.5);
+      const list = document.getElementById('m8order');
+      renderOrderList(list, shuffled);
+      enableDrag(list);
+      document.getElementById('m8check').addEventListener('click', ()=>{
+        const current = [...list.children].map(li=>li.dataset.text);
+        const fb = document.getElementById('m8fb');
+        if(JSON.stringify(current)===JSON.stringify(correctOrder)){
+          fb.className='feedback show ok';
+          fb.innerHTML='<p>¡Correcto! 🎉 El paso -1 recorre el arreglo desde N hasta 1.</p>';
+          addXp(5);
+        } else {
+          fb.className='feedback show bad';
+          fb.innerHTML='<p>¡Casi! No te preocupes, equivocarse es parte de aprender 💪. Pista: el ciclo empieza en N y termina en 1, usando Con Paso -1.</p>';
+        }
+      });
+    },
+    quiz:[
+      {q:'¿Qué palabra clave permite recorrer un arreglo en reversa?', opts:['Con Paso -1','Al Revés','Invertir','Retroceder'], correct:0},
+      {q:'Si el arreglo es 10, 25, 7 ¿cuál es la salida en orden inverso?', opts:['10 25 7','7 25 10','7 10 25','25 10 7'], correct:1},
+      {q:'En un recorrido inverso, ¿desde dónde empieza el índice i?', opts:['Desde 1','Desde N','Desde 0','Desde -1'], correct:1},
+    ]
+  },
+];
+
+function renderOrderList(list, items){
+  list.innerHTML = items.map(t=>`<li class="order-item" draggable="true" data-text="${t.replace(/"/g,'&quot;')}"><span class="grip">⋮⋮</span>${t}</li>`).join('');
+}
+function enableDrag(list){
+  let dragEl = null;
+  list.addEventListener('dragstart', e=>{
+    dragEl = e.target.closest('.order-item');
+    dragEl.classList.add('dragging');
+  });
+  list.addEventListener('dragend', ()=>{ dragEl && dragEl.classList.remove('dragging'); dragEl=null; });
+  list.addEventListener('dragover', e=>{
+    e.preventDefault();
+    const after = [...list.querySelectorAll('.order-item:not(.dragging)')].reduce((closest, child)=>{
+      const box = child.getBoundingClientRect();
+      const offset = e.clientY - box.top - box.height/2;
+      if(offset < 0 && offset > closest.offset) return {offset, el:child};
+      return closest;
+    }, {offset:-Infinity, el:null}).el;
+    if(!dragEl) return;
+    if(after==null) list.appendChild(dragEl); else list.insertBefore(dragEl, after);
+  });
+}
+
+function renderModules(){
+  const wrap = document.getElementById('modulesWrap');
+  wrap.innerHTML = modules.map((m,idx)=>`
+    <div class="card module" id="module-${m.id}">
+      <div class="module-head" data-target="${m.id}">
+        <div class="module-head-left">
+          <div class="module-num">${idx+1}</div>
+          <h3>${m.title}</h3>
+        </div>
+        <span class="chev">⌄</span>
+      </div>
+      <div class="module-body">
+        <div class="module-body-inner">
+          ${m.body}
+          <div class="mini-quiz">
+            <h4>Mini quiz — ${m.quiz.length} preguntas</h4>
+            ${m.quiz.map((q,qi)=>`
+              <div class="q-block">
+                <div class="q-text">${qi+1}. ${q.q}</div>
+                <div class="opts" data-mod="${m.id}" data-qi="${qi}">
+                  ${q.opts.map((o,oi)=>`<button class="opt-btn" data-oi="${oi}">${o}</button>`).join('')}
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      </div>
+    </div>
+  `).join('');
+
+  wrap.querySelectorAll('.module-head').forEach(head=>{
+    head.addEventListener('click', ()=>{
+      document.getElementById('module-'+head.dataset.target).classList.toggle('open');
+    });
+  });
+
+  modules.forEach(m=>{ if(m.afterRender) m.afterRender(); });
+
+  wrap.querySelectorAll('.opts').forEach(optWrap=>{
+    const m = modules.find(x=>x.id===optWrap.dataset.mod);
+    const q = m.quiz[+optWrap.dataset.qi];
+    optWrap.querySelectorAll('.opt-btn').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        const oi = +btn.dataset.oi;
+        optWrap.querySelectorAll('.opt-btn').forEach(b=>b.disabled=true);
+        if(oi===q.correct){
+          btn.classList.add('correct');
+          addXp(10);
+        } else {
+          btn.classList.add('wrong');
+          optWrap.children[q.correct].classList.add('correct');
+        }
+      });
+    });
+  });
+}
+
+/* =========================================================
+   FLASHCARDS
+========================================================= */
+const flashcards = [
+  {q:'¿Qué es un arreglo?', a:'Una estructura de datos que permite almacenar varios valores del mismo tipo bajo un mismo nombre.'},
+  {q:'¿Desde qué número comienzan los índices en PSeInt?', a:'Desde 1.'},
+  {q:'¿Qué comando se utiliza para definir el tamaño de un arreglo?', a:'Dimension.'},
+  {q:'¿Qué variable usamos para sumar valores progresivamente?', a:'Un acumulador.'},
+  {q:'¿Qué operador permite saber si un número es par?', a:'MOD.'},
+  {q:'¿Qué variable podemos usar para saber si encontramos un elemento?', a:'Una bandera lógica.'},
+  {q:'¿Qué instrucción se usa para recorrer un arreglo de tamaño conocido?', a:'Para (Para i <- 1 Hasta N Hacer).'},
+  {q:'¿Cómo se declara un arreglo de 10 enteros llamado notas?', a:'Dimension notas[10] / Definir notas Como Entero.'},
+  {q:'¿Con qué valor se inicializa un acumulador de suma?', a:'En 0.'},
+  {q:'¿Con qué valor conviene inicializar la variable mayor?', a:'Con el primer elemento del arreglo, numeros[1].'},
+  {q:'¿Por qué no se debe inicializar mayor en 0?', a:'Porque si todos los elementos son negativos, el resultado sería incorrecto.'},
+  {q:'¿Qué fórmula se usa para calcular el promedio?', a:'promedio <- suma / N.'},
+  {q:'¿Qué hace MOD 2 sobre un número?', a:'Devuelve el resto de dividir el número por 2 (0 si es par, 1 si es impar).'},
+  {q:'¿Qué es un contador?', a:'Una variable que aumenta en 1 cada vez que se cumple una condición.'},
+  {q:'¿Qué es la búsqueda lineal?', a:'Recorrer el arreglo comparando cada elemento con el valor buscado.'},
+  {q:'¿Qué instrucción permite recorrer un arreglo en orden inverso?', a:'Para i <- N Hasta 1 Con Paso -1 Hacer.'},
+  {q:'¿Qué significa Dimension numeros[5]?', a:'Que el arreglo numeros tendrá 5 posiciones.'},
+  {q:'¿Cómo se accede al tercer elemento de un arreglo llamado datos?', a:'datos[3].'},
+  {q:'¿Qué variable guarda la posición donde se encontró un elemento?', a:'posEncontrado.'},
+  {q:'¿Qué condición se usa para verificar edad laboral entre 18 y 65?', a:'Si edad >= 18 Y edad <= 65 Entonces.'},
+  {q:'¿Qué se debe evitar antes de calcular un promedio con un contador?', a:'La división por cero: verificar que el contador sea mayor que 0.'},
+  {q:'¿Qué instrucción se usa para leer un valor en PSeInt?', a:'Leer.'},
+  {q:'¿Qué instrucción se usa para mostrar un valor en PSeInt?', a:'Escribir.'},
+  {q:'¿Qué tipo de dato tiene la variable encontrado?', a:'Lógico (Verdadero/Falso).'},
+  {q:'¿Qué operador lógico se usa para combinar dos condiciones que deben cumplirse ambas?', a:'Y.'},
+];
+
+function renderFlashcard(){
+  const i = state.fcIndex;
+  document.getElementById('fcQ').textContent = flashcards[i].q;
+  document.getElementById('fcA').textContent = flashcards[i].a;
+  document.getElementById('flashcard').classList.remove('flipped');
+  document.getElementById('fcCounter').textContent = `Tarjeta ${i+1} / ${flashcards.length}`;
+  document.getElementById('fcBar').style.width = `${((i+1)/flashcards.length)*100}%`;
+  document.getElementById('fcReviewCount').textContent = `${state.fcReviewQueue.length} por repasar`;
+}
+document.getElementById('flashcard').addEventListener('click', function(){ this.classList.toggle('flipped'); });
+
+function nextFlashcard(){
+  if(state.fcIndex < flashcards.length - 1){
+    state.fcIndex++;
+  } else if(state.fcReviewQueue.length > 0){
+    // reciclar tarjetas marcadas para repasar
+    flashcards.push(...state.fcReviewQueue.splice(0));
+    state.fcIndex++;
+  } else {
+    toast('¡Completaste todas las flashcards! 🎉');
+    state.fcIndex = 0;
+  }
+  renderFlashcard();
+}
+document.getElementById('fcKnow').addEventListener('click', ()=>{
+  state.fcKnown.add(state.fcIndex);
+  addXp(2);
+  nextFlashcard();
+  renderHeader();
+});
+document.getElementById('fcReview').addEventListener('click', ()=>{
+  state.fcReviewQueue.push(flashcards[state.fcIndex]);
+  nextFlashcard();
+});
+
+/* =========================================================
+   EJERCICIOS DE PRÁCTICA
+========================================================= */
+function renderPracticeLocks(){
+  document.querySelectorAll('.exercise-card').forEach(card=>{
+    const level = +card.dataset.level;
+    let unlocked = true;
+    if(level===2) unlocked = state.completedExercises.has('ex1') && state.completedExercises.has('ex2');
+    if(level===3) unlocked = ['ex3','ex4','ex5'].every(x=>state.completedExercises.has(x));
+    card.classList.toggle('locked', !unlocked);
+  });
+}
+
+function markExerciseDone(id, fb, msg){
+  if(!state.completedExercises.has(id)){
+    state.completedExercises.add(id);
+    addXp(15);
+  }
+  fb.className='feedback show ok';
+  fb.innerHTML = `<p>¡Correcto! 🎉 ${msg}</p>`;
+  renderHeader();
+}
+function markExerciseWrong(fb, msg){
+  fb.className='feedback show bad';
+  fb.innerHTML = `<p>¡Casi! No te preocupes, equivocarse es parte de aprender 💪. ${msg}</p>`;
+}
+
+function buildPractice(){
+  const wrap = document.getElementById('practiceWrap');
+  wrap.innerHTML = `
+    <div class="level-group">
+      <div class="level-head"><span class="tag g">🟢 Nivel 1 · Básico</span></div>
+      <div id="ex1"></div>
+      <div id="ex2"></div>
+    </div>
+    <div class="level-group">
+      <div class="level-head"><span class="tag y">🟡 Nivel 2 · Intermedio</span></div>
+      <div id="ex3"></div>
+      <div id="ex4"></div>
+      <div id="ex5"></div>
+    </div>
+    <div class="level-group">
+      <div class="level-head"><span class="tag r">🔴 Nivel 3 · Avanzado</span></div>
+      <div id="ex6"></div>
+      <div id="ex7"></div>
+      <div id="ex8"></div>
+    </div>
+  `;
+  buildEx1(); buildEx2(); buildEx3(); buildEx4(); buildEx5(); buildEx6(); buildEx7(); buildEx8();
+}
+
+// Ejercicio 1 — Leer y mostrar un arreglo
+function buildEx1(){
+  document.getElementById('ex1').innerHTML = `
+    <div class="card exercise-card" data-level="1">
+      <div class="ex-head"><h3>Ejercicio 1 — Leer y mostrar un arreglo</h3><span class="tag g">Básico</span></div>
+      <p class="ex-body">Crea un algoritmo que lea 5 números enteros, los almacene en un arreglo y luego los muestre en el mismo orden. Completa el código:</p>
+      <div class="codeblock">Dimension numeros[5]
+
+Para i <- <input type="text" class="blank" id="e1a"> Hasta <input type="text" class="blank" id="e1b"> Hacer
+    Leer numeros[i]
+FinPara</div>
+      <button class="btn small secondary" style="margin-top:12px;" id="e1check">Comprobar</button>
+      <button class="hint-btn" id="e1hintbtn">💡 Ver pista</button>
+      <div class="hint-box" id="e1hint">El ciclo debe recorrer desde la primera hasta la última posición del arreglo.</div>
+      <div class="feedback" id="e1fb"></div>
+    </div>`;
+  let attempts = 0;
+  document.getElementById('e1hintbtn').addEventListener('click', ()=>document.getElementById('e1hint').classList.toggle('show'));
+  document.getElementById('e1check').addEventListener('click', ()=>{
+    const a = document.getElementById('e1a').value.trim();
+    const b = document.getElementById('e1b').value.trim();
+    const fb = document.getElementById('e1fb');
+    attempts++;
+    if(a==='1' && b==='5'){
+      markExerciseDone('ex1', fb, 'El ciclo recorre desde i=1 hasta i=5, leyendo cada posición del arreglo.');
+    } else {
+      markExerciseWrong(fb, attempts>=2 ? 'Pista clara: el primer valor es 1 y el segundo es el tamaño del arreglo, 5.' : 'Revisa desde qué posición empieza y termina el arreglo.');
+    }
+  });
+}
+
+// Ejercicio 2 — Suma de elementos
+function buildEx2(){
+  document.getElementById('ex2').innerHTML = `
+    <div class="card exercise-card" data-level="1">
+      <div class="ex-head"><h3>Ejercicio 2 — Suma de elementos</h3><span class="tag g">Básico</span></div>
+      <p class="ex-body">Leer N números enteros en un arreglo, calcular la suma de todos los elementos y mostrarla. Completa el algoritmo:</p>
+      <div class="codeblock">suma <- <input type="text" class="blank" id="e2a">
+
+Para i <- 1 Hasta N Hacer
+    suma <- suma + <input type="text" class="blank wide" id="e2b">
+FinPara
+
+Escribir suma</div>
+      <button class="btn small secondary" style="margin-top:12px;" id="e2check">Comprobar</button>
+      <button class="hint-btn" id="e2hintbtn">💡 Ver pista</button>
+      <div class="hint-box" id="e2hint">El acumulador siempre inicia en 0, y se le suma el elemento actual del arreglo: numeros[i].</div>
+      <div class="feedback" id="e2fb"></div>
+    </div>`;
+  let attempts = 0;
+  document.getElementById('e2hintbtn').addEventListener('click', ()=>document.getElementById('e2hint').classList.toggle('show'));
+  document.getElementById('e2check').addEventListener('click', ()=>{
+    const a = document.getElementById('e2a').value.trim();
+    const b = document.getElementById('e2b').value.trim().replace(/\s/g,'');
+    const fb = document.getElementById('e2fb');
+    attempts++;
+    if(a==='0' && (b==='numeros[i]')){
+      markExerciseDone('ex2', fb, 'suma inicia en 0 y en cada vuelta del ciclo se le suma numeros[i].');
+    } else {
+      markExerciseWrong(fb, attempts>=2 ? 'Pista clara: el primer espacio es 0, el segundo es numeros[i].' : 'Piensa en cómo funciona un acumulador desde cero.');
+    }
+  });
+}
+
+// Ejercicio 3 — Promedio y notas superiores
+function buildEx3(){
+  document.getElementById('ex3').innerHTML = `
+    <div class="card exercise-card" data-level="2">
+      <div class="ex-head"><h3>Ejercicio 3 — Promedio y notas superiores</h3><span class="tag y">Intermedio</span></div>
+      <p class="ex-body">Leer N notas entre 1.0 y 7.0. Calcular el promedio y cuántas notas superan el promedio.</p>
+      <p class="ex-body" style="font-weight:600; color:var(--ink);">¿Cuántos recorridos del arreglo necesitas?</p>
+      <div class="opts" id="e3opts">
+        <button class="opt-btn" data-v="1">1 recorrido</button>
+        <button class="opt-btn" data-v="2">2 recorridos</button>
+        <button class="opt-btn" data-v="3">3 recorridos</button>
+      </div>
+      <div class="feedback" id="e3fb"></div>
+    </div>`;
+  document.getElementById('e3opts').querySelectorAll('.opt-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const fb = document.getElementById('e3fb');
+      document.getElementById('e3opts').querySelectorAll('.opt-btn').forEach(b=>b.disabled=true);
+      if(btn.dataset.v==='2'){
+        btn.classList.add('correct');
+        markExerciseDone('ex3', fb, 'Necesitas 2 recorridos: uno para leer y sumar (calcular el promedio) y otro para comparar cada nota con el promedio ya calculado.');
+      } else {
+        btn.classList.add('wrong');
+        document.getElementById('e3opts').children[1].classList.add('correct');
+        markExerciseWrong(fb, 'No puedes comparar con el promedio antes de calcularlo por completo, así que necesitas un primer recorrido para sumar y un segundo para comparar: son 2 recorridos.');
+      }
+    });
+  });
+}
+
+// Ejercicio 4 — Mayor elemento y posición
+function buildEx4(){
+  document.getElementById('ex4').innerHTML = `
+    <div class="card exercise-card" data-level="2">
+      <div class="ex-head"><h3>Ejercicio 4 — Mayor elemento y posición</h3><span class="tag y">Intermedio</span></div>
+      <p class="ex-body">Leer N números. Encontrar el número mayor y la posición donde se encuentra. Completa:</p>
+      <div class="codeblock">mayor <- numeros[1]
+posMayor <- <input type="text" class="blank" id="e4a">
+
+Para i <- <input type="text" class="blank" id="e4b"> Hasta N Hacer
+    Si numeros[i] > mayor Entonces
+        mayor <- numeros[i]
+        posMayor <- i
+    FinSi
+FinPara</div>
+      <button class="btn small secondary" style="margin-top:12px;" id="e4check">Comprobar</button>
+      <button class="hint-btn" id="e4hintbtn">💡 Ver pista</button>
+      <div class="hint-box" id="e4hint">Si mayor ya toma el valor de numeros[1], posMayor debe iniciar en 1, y el recorrido debe iniciar en la posición 2.</div>
+      <div class="feedback" id="e4fb"></div>
+    </div>`;
+  let attempts = 0;
+  document.getElementById('e4hintbtn').addEventListener('click', ()=>document.getElementById('e4hint').classList.toggle('show'));
+  document.getElementById('e4check').addEventListener('click', ()=>{
+    const a = document.getElementById('e4a').value.trim();
+    const b = document.getElementById('e4b').value.trim();
+    const fb = document.getElementById('e4fb');
+    attempts++;
+    if(a==='1' && b==='2'){
+      markExerciseDone('ex4', fb, 'posMayor inicia en 1 (igual que mayor) y el recorrido comienza en 2, ya que la posición 1 ya fue usada para inicializar.');
+    } else {
+      markExerciseWrong(fb, attempts>=2 ? 'Pista clara: posMayor <- 1, y el ciclo va desde i <- 2.' : 'Piensa en qué posición ya quedó registrada al inicializar mayor.');
+    }
+  });
+}
+
+// Ejercicio 5 — Pares e impares (arrastrar y soltar)
+function buildEx5(){
+  document.getElementById('ex5').innerHTML = `
+    <div class="card exercise-card" data-level="2">
+      <div class="ex-head"><h3>Ejercicio 5 — Pares e impares</h3><span class="tag y">Intermedio</span></div>
+      <p class="ex-body">Leer N números y mostrar la cantidad de pares e impares. Ordena las líneas del algoritmo arrastrándolas:</p>
+      <ul class="order-list" id="e5order"></ul>
+      <button class="btn small secondary" id="e5check">Comprobar orden</button>
+      <button class="hint-btn" id="e5hintbtn">💡 Ver pista</button>
+      <div class="hint-box" id="e5hint">Primero se inicializan los contadores en 0, luego el ciclo Para, luego el Si con MOD, y dentro se incrementa el contador correspondiente.</div>
+      <div class="feedback" id="e5fb"></div>
+    </div>`;
+  const correctOrder = [
+    'pares <- 0',
+    'impares <- 0',
+    'Para i <- 1 Hasta N Hacer',
+    '    Si numeros[i] MOD 2 = 0 Entonces',
+    '        pares <- pares + 1',
+    '    SiNo',
+    '        impares <- impares + 1',
+    '    FinSi',
+    'FinPara'
+  ];
+  const list = document.getElementById('e5order');
+  renderOrderList(list, [...correctOrder].sort(()=>Math.random()-0.5));
+  enableDrag(list);
+  document.getElementById('e5hintbtn').addEventListener('click', ()=>document.getElementById('e5hint').classList.toggle('show'));
+  document.getElementById('e5check').addEventListener('click', ()=>{
+    const current = [...list.children].map(li=>li.dataset.text);
+    const fb = document.getElementById('e5fb');
+    if(JSON.stringify(current)===JSON.stringify(correctOrder)){
+      markExerciseDone('ex5', fb, 'Los contadores se inicializan en 0, y dentro del ciclo, según MOD 2, se incrementa pares o impares.');
+    } else {
+      markExerciseWrong(fb, 'Revisa el orden: primero se inicializan ambos contadores, luego el ciclo, y dentro la condición con Si/SiNo.');
+    }
+  });
+}
+
+// Ejercicio 6 — Búsqueda de un elemento
+function buildEx6(){
+  document.getElementById('ex6').innerHTML = `
+    <div class="card exercise-card" data-level="3">
+      <div class="ex-head"><h3>Ejercicio 6 — Búsqueda de un elemento</h3><span class="tag r">Avanzado</span></div>
+      <p class="ex-body">Leer N números y luego un valor a buscar. Indicar si existe y en qué posición. Completa:</p>
+      <div class="codeblock">encontrado <- <input type="text" class="blank" id="e6a">
+
+Para i <- 1 Hasta N Hacer
+    Si numeros[i] = buscado Entonces
+        encontrado <- <input type="text" class="blank" id="e6b">
+        posEncontrado <- i
+    FinSi
+FinPara</div>
+      <button class="btn small secondary" style="margin-top:12px;" id="e6check">Comprobar</button>
+      <button class="hint-btn" id="e6hintbtn">💡 Ver pista</button>
+      <div class="hint-box" id="e6hint">La bandera empieza en Falso, y se cambia a Verdadero solo cuando se encuentra el valor buscado.</div>
+      <div class="feedback" id="e6fb"></div>
+    </div>`;
+  let attempts=0;
+  document.getElementById('e6hintbtn').addEventListener('click', ()=>document.getElementById('e6hint').classList.toggle('show'));
+  document.getElementById('e6check').addEventListener('click', ()=>{
+    const a = document.getElementById('e6a').value.trim().toLowerCase();
+    const b = document.getElementById('e6b').value.trim().toLowerCase();
+    const fb = document.getElementById('e6fb');
+    attempts++;
+    if(a==='falso' && b==='verdadero'){
+      markExerciseDone('ex6', fb, 'La bandera encontrado inicia en Falso y cambia a Verdadero cuando se halla el valor buscado.');
+    } else {
+      markExerciseWrong(fb, attempts>=2 ? 'Pista clara: encontrado <- Falso al inicio, y encontrado <- Verdadero dentro del Si.' : 'Piensa en el estado inicial de una bandera antes de buscar.');
+    }
+  });
+}
+
+// Ejercicio 7 — Orden inverso
+function buildEx7(){
+  document.getElementById('ex7').innerHTML = `
+    <div class="card exercise-card" data-level="3">
+      <div class="ex-head"><h3>Ejercicio 7 — Orden inverso</h3><span class="tag r">Avanzado</span></div>
+      <p class="ex-body">Leer N números y mostrarlos en orden inverso. Completa el paso del ciclo:</p>
+      <div class="codeblock">Para i <- N Hasta 1 Con Paso <input type="text" class="blank" id="e7a"> Hacer
+    Escribir numeros[i]
+FinPara</div>
+      <button class="btn small secondary" style="margin-top:12px;" id="e7check">Comprobar</button>
+      <div class="feedback" id="e7fb"></div>
+    </div>`;
+  document.getElementById('e7check').addEventListener('click', ()=>{
+    const a = document.getElementById('e7a').value.trim();
+    const fb = document.getElementById('e7fb');
+    if(a==='-1'){
+      markExerciseDone('ex7', fb, 'Con Paso -1 hace que el ciclo retroceda desde N hasta 1.');
+    } else {
+      markExerciseWrong(fb, 'El paso debe ser negativo para que el ciclo retroceda: -1.');
+    }
+  });
+}
+
+// Ejercicio 8 — Edad laboral y promedio
+function buildEx8(){
+  document.getElementById('ex8').innerHTML = `
+    <div class="card exercise-card" data-level="3">
+      <div class="ex-head"><h3>Ejercicio 8 — Edad laboral y promedio</h3><span class="tag r">Avanzado</span></div>
+      <p class="ex-body">Leer N edades. Contar cuántas personas tienen edad laboral (18 a 65 años) y calcular el promedio de esas edades. Completa:</p>
+      <div class="codeblock">Si edades[i] >= 18 <input type="text" class="blank" id="e8a"> edades[i] <= 65 Entonces
+    contador <- contador + 1
+    suma <- suma + edades[i]
+FinSi
+
+...
+Si contador <input type="text" class="blank" id="e8b"> 0 Entonces
+    promedio <- suma / contador
+FinSi</div>
+      <button class="btn small secondary" style="margin-top:12px;" id="e8check">Comprobar</button>
+      <button class="hint-btn" id="e8hintbtn">💡 Ver pista</button>
+      <div class="hint-box" id="e8hint">Se necesita el operador Y para combinar dos condiciones, y verificar que el contador sea mayor que 0 antes de dividir (evitar división por cero).</div>
+      <div class="feedback" id="e8fb"></div>
+    </div>`;
+  let attempts=0;
+  document.getElementById('e8hintbtn').addEventListener('click', ()=>document.getElementById('e8hint').classList.toggle('show'));
+  document.getElementById('e8check').addEventListener('click', ()=>{
+    const a = document.getElementById('e8a').value.trim().toUpperCase();
+    const b = document.getElementById('e8b').value.trim();
+    const fb = document.getElementById('e8fb');
+    attempts++;
+    if(a==='Y' && b==='>'){
+      markExerciseDone('ex8', fb, 'El operador Y combina ambas condiciones (18 ≤ edad ≤ 65), y contador > 0 evita la división por cero.');
+    } else {
+      markExerciseWrong(fb, attempts>=2 ? 'Pista clara: usa Y para combinar condiciones, y > para comparar contador con 0.' : 'Piensa en cómo se combinan dos condiciones y cómo evitar dividir por cero.');
+    }
+  });
+}
+
+/* =========================================================
+   DESAFÍO FINAL
+========================================================= */
+const examBank = [
+  {type:'mc', q:'¿Desde qué número comienzan los índices en PSeInt?', opts:['0','1','2','Depende'], correct:1},
+  {type:'mc', q:'¿Qué instrucción define el tamaño de un arreglo?', opts:['Definir','Dimension','Crear','Tamaño'], correct:1},
+  {type:'mc', q:'¿Qué hace "suma <- suma + numeros[i]" dentro de un ciclo Para?', opts:['Resta elementos','Acumula la suma de los elementos','Cuenta elementos','Ordena el arreglo'], correct:1},
+  {type:'mc', q:'¿Con qué valor se debe inicializar la variable mayor?', opts:['0','Con el primer elemento del arreglo','100','-1'], correct:1},
+  {type:'mc', q:'¿Qué devuelve numeros[i] MOD 2 cuando numeros[i] es par?', opts:['1','0','2','-1'], correct:1},
+  {type:'mc', q:'¿Qué es una variable bandera?', opts:['Un contador','Una variable lógica que indica un estado (Verdadero/Falso)','Un arreglo','Un índice'], correct:1},
+  {type:'mc', q:'¿Qué instrucción permite recorrer un arreglo en reversa?', opts:['Con Paso -1','Al Revés','Invertir()','Retroceder'], correct:0},
+  {type:'mc', q:'Si numeros = {4,9,2,7} ¿cuál es numeros[2]?', opts:['4','9','2','7'], correct:1},
+  {type:'mc', q:'¿Cuántos recorridos necesitas para calcular cuántas notas superan el promedio?', opts:['1','2','3','0'], correct:1},
+  {type:'mc', q:'¿Qué evita la división por cero al calcular un promedio con contador?', opts:['Verificar que contador > 0 antes de dividir','Sumar 1 al contador siempre','Usar MOD','Usar Dimension'], correct:0},
+  {type:'mc', q:'¿Qué operador combina dos condiciones que deben cumplirse ambas?', opts:['O','Y','No','MOD'], correct:1},
+  {type:'mc', q:'¿Qué imprime este código si numeros={10,25,7} y se recorre con Para i <- N Hasta 1 Con Paso -1?', opts:['10 25 7','7 25 10','25 10 7','7 10 25'], correct:1},
+  {type:'mc', q:'¿Cuál es el error en "mayor <- 0" antes de buscar el mayor en un arreglo con solo números negativos?', opts:['No hay error','El resultado sería incorrecto porque 0 no pertenece al arreglo y es mayor que todos los negativos','PSeInt no lo permite','Faltaría Dimension'], correct:1},
+  {type:'mc', q:'¿Qué declara correctamente un arreglo de 8 números reales llamado precios?', opts:['Dimension precios[8] / Definir precios Como Real','Definir precios[8]','precios <- Dimension(8)','Real precios[8]'], correct:0},
+  {type:'mc', q:'¿Qué predice mejor el resultado de "contador <- contador + 1" ejecutado dentro de un Si con MOD 2 = 1?', opts:['Cuenta los números pares','Cuenta los números impares','Suma todos los números','Encuentra el mayor'], correct:1},
+  {type:'mc', q:'En la búsqueda lineal, ¿qué significa que encontrado siga en Falso al terminar el ciclo?', opts:['El valor buscado sí está en el arreglo','El valor buscado no está en el arreglo','Hubo un error de sintaxis','El arreglo está vacío'], correct:1},
+  {type:'mc', q:'¿Qué instrucción de PSeInt se usa para ingresar datos del usuario a un arreglo?', opts:['Escribir','Leer','Mostrar','Guardar'], correct:1},
+  {type:'mc', q:'¿Qué representa la variable N en la mayoría de los recorridos de arreglos?', opts:['Un valor fijo igual a 10','El tamaño o cantidad de elementos del arreglo','El índice actual','El nombre del arreglo'], correct:1},
+];
+
+let examQuestions = [];
+let examIndex = 0;
+let examScore = 0;
+
+function shuffleArray(arr){ return [...arr].sort(()=>Math.random()-0.5); }
+
+document.getElementById('examStartBtn').addEventListener('click', startExam);
+document.getElementById('examRetryBtn').addEventListener('click', startExam);
+
+function startExam(){
+  examQuestions = shuffleArray(examBank).slice(0,10);
+  examIndex = 0;
+  examScore = 0;
+  document.getElementById('examStart').classList.add('hidden');
+  document.getElementById('examResult').classList.add('hidden');
+  document.getElementById('examRunning').classList.remove('hidden');
+  renderExamQuestion();
+}
+
+function renderExamQuestion(){
+  const q = examQuestions[examIndex];
+  document.getElementById('examProgress').textContent = `Pregunta ${examIndex+1} de ${examQuestions.length}`;
+  document.getElementById('examBar').style.width = `${(examIndex/examQuestions.length)*100}%`;
+  const area = document.getElementById('examQArea');
+  area.innerHTML = `
+    <div class="exam-q">
+      <div class="q-text" style="font-size:16px;">${q.q}</div>
+      <div class="opts" id="examOpts">
+        ${q.opts.map((o,oi)=>`<button class="opt-btn" data-oi="${oi}">${o}</button>`).join('')}
+      </div>
+    </div>`;
+  document.getElementById('examOpts').querySelectorAll('.opt-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const oi = +btn.dataset.oi;
+      document.getElementById('examOpts').querySelectorAll('.opt-btn').forEach(b=>b.disabled=true);
+      if(oi===q.correct){
+        btn.classList.add('correct');
+        examScore++;
+      } else {
+        btn.classList.add('wrong');
+        document.getElementById('examOpts').children[q.correct].classList.add('correct');
+      }
+      setTimeout(()=>{
+        examIndex++;
+        if(examIndex < examQuestions.length){ renderExamQuestion(); }
+        else { finishExam(); }
+      }, 900);
+    });
+  });
+}
+
+function finishExam(){
+  document.getElementById('examRunning').classList.add('hidden');
+  document.getElementById('examResult').classList.remove('hidden');
+  const pct = Math.round((examScore/examQuestions.length)*100);
+  document.getElementById('examPct').textContent = pct + '%';
+  document.getElementById('examScoreText').textContent = `Obtuviste ${examScore} / ${examQuestions.length}`;
+  const circle = document.getElementById('resultCircle');
+  const circumference = 415;
+  circle.style.strokeDashoffset = circumference - (circumference*pct/100);
+
+  let levelLabel, rec;
+  if(pct < 50){ levelLabel='Principiante'; rec='Te recomendamos volver a repasar declaración y recorridos.'; }
+  else if(pct < 70){ levelLabel='Intermedio'; rec='Vas por buen camino. Refuerza operaciones como máximo, promedio y conteo.'; }
+  else if(pct < 90){ levelLabel='Avanzado'; rec='¡Muy bien! Sigue practicando búsqueda y recorridos inversos para perfeccionar.'; }
+  else { levelLabel='Experto en Arreglos'; rec='¡Excelente! Dominas muy bien los fundamentos de arreglos.'; }
+  document.getElementById('examLevelText').textContent = 'Nivel: ' + levelLabel;
+  document.getElementById('examRecText').textContent = rec;
+  state.examBadge = levelLabel;
+  addXp(examScore * 8);
+  renderHeader();
+}
+
+/* =========================================================
+   INIT
+========================================================= */
+renderModules();
+renderFlashcard();
+buildPractice();
+renderHeader();
+rotateMotivation();
+</script>
+</body>
+</html>
